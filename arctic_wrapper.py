@@ -21,6 +21,8 @@ class ArcticDataset(AudioDataset):
                  percentage: float = 0.5,
                  usage='train',
                  padding_length: int = 0,
+                 by_frame: bool = True,
+                 frame_length: int = 1024,
                  transform: Callable = None,
                  phone_codes: Union[List[str], str] = None,
                  gender: Optional[str] = None,
@@ -30,6 +32,9 @@ class ArcticDataset(AudioDataset):
         self.root_dir = root_dir
         self.os_slash = os_slash
         self.description_file_path = description_file_path
+
+        self.by_frame = by_frame
+        self.frame_length = frame_length
 
         self.transform = transform
         self.phoneme_labeler = phoneme_labeler
@@ -126,7 +131,7 @@ class ArcticDataset(AudioDataset):
     def _get_audio_fragments(self, *args, **kwargs) -> list[AudioData]:
         fragments = list()
         for _, row in self.description_table.iterrows():
-            fragments.append(self._load_audio_fragment(row, self.root_dir))
+            fragments.extend(self._load_audio_fragment(row, self.root_dir))
         return fragments
 
     def __len__(self) -> int:

@@ -21,6 +21,8 @@ class LibriSpeechDataset(AudioDataset):
                  data_kind: Optional[str] = 'dev',
                  quality: Optional[str] = 'clean',
                  padding_length: int = 0,
+                 by_frame: bool = True,
+                 frame_length: int = 1024,
                  percentage: Optional[float] = None,
                  transform: Optional[Callable] = None,
                  phone_codes: Union[List[str], str] = None,
@@ -29,6 +31,10 @@ class LibriSpeechDataset(AudioDataset):
         super().__init__()
         self.padding_length = padding_length
         self.root_dir = root_dir
+
+        self.by_frame = by_frame
+        self.frame_length = frame_length
+
         self.os_slash = os_slash
         self.description_file_path = description_file_path
         self.percentage = percentage
@@ -105,8 +111,7 @@ class LibriSpeechDataset(AudioDataset):
     def _get_audio_fragments(self, *args, **kwargs) -> list[AudioData]:
         fragments = list()
         for _, row in self.description_table.iterrows():
-            fragments.append(self._load_audio_fragment(row, self.root_dir))
-            break
+            fragments.extend(self._load_audio_fragment(row, self.root_dir))
         return fragments
 
     def __len__(self) -> int:

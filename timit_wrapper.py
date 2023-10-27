@@ -22,6 +22,8 @@ class TIMITDataset(AudioDataset):
                  usage: str = 'TRAIN',
                  os_slash: str = '\\',
                  padding_length: int = 0,
+                 by_frame: bool = True,
+                 frame_length: int = 1024,
                  percentage: Optional[float] = None,
                  transform: Optional[Callable] = None,
                  phone_codes: Union[List[str], str] = None,
@@ -33,6 +35,8 @@ class TIMITDataset(AudioDataset):
         self.padding_length = padding_length
         self.timit_constant = 15987
         self.root_dir = root_dir
+        self.by_frame = by_frame
+        self.frame_length = frame_length
         self.description_file_path = description_file_path
         self.os_slash = os_slash
         self.phone_codes = phone_codes
@@ -56,7 +60,6 @@ class TIMITDataset(AudioDataset):
                 sorted(Path(r'D:\voice_datasets\timit\TIMIT_2\data').glob('*/*/*/*.PHN')),
                 sorted(Path(r'D:\voice_datasets\timit\TIMIT_2\data').glob('*/*/*/*.WAV.wav'))
                 ):
-                print(allignment_file)
                 with open(allignment_file) as labels:
                     usage, dialect, dictor_id, filename = str(allignment_file).split(self.os_slash)[-4:]
                     for label in labels:
@@ -122,7 +125,7 @@ class TIMITDataset(AudioDataset):
     def _get_audio_fragments(self, *args, **kwargs) -> list[AudioData]:
         fragments = list()
         for _, row in self.description_table.iterrows():
-            fragments.append(self._load_audio_fragment(row, self.root_dir))
+            fragments.extend(self._load_audio_fragment(row, self.root_dir))
         return fragments
 
     def __len__(self) -> int:
