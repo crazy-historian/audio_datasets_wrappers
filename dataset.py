@@ -62,10 +62,6 @@ class AudioDataset(Dataset, ABC):
         data, _ = torchaudio.load(Path(root_dir, audio_fragment.audio_file_path))
         data = data[:, t0:t1]
 
-        # if self.padding_length != 0:
-        #     new_shape = self.padding_length - data.shape[1]
-        #     data = F.pad(data, (0, new_shape), 'constant', 0.0)
-
         if self.by_frame is True:
             i = 0
             frames = list()

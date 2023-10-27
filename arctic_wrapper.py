@@ -67,7 +67,7 @@ class ArcticDataset(AudioDataset):
             'TLV': ['Vietnamese', 'M']
         }
         self.description_table = self._prepare_description(test_fraction)
-        self.description_table = self._filter_description_table(percentage, usage, gender, first_language)
+        self.description_table = self._filter_description_table(percentage, phone_codes, usage, gender, first_language)
         self.audio_fragments = self._get_audio_fragments()
 
     def _prepare_description(self, test_fraction) -> pd.DataFrame:
@@ -112,7 +112,7 @@ class ArcticDataset(AudioDataset):
 
             return df
 
-    def _filter_description_table(self, percentage: float, usage: str, gender: Optional[str], first_language: Optional[str]) -> pd.DataFrame:
+    def _filter_description_table(self, percentage: float, phone_classes: List[str], usage: str, gender: Optional[str], first_language: Optional[str]) -> pd.DataFrame:
         
         self.description_table = self.description_table.loc[self.description_table['usage'] == usage]
 
@@ -122,6 +122,9 @@ class ArcticDataset(AudioDataset):
         if first_language is not None:
             dialects = self.description_table['l1'].isin(first_language)
             self.description_table = self.description_table[dialects]
+
+        if phone_classes is not None:
+            self.description_table = self.description_table.loc[self.description_table['phone_class'].isin(phone_classes)]
 
         if percentage is not None:
             self.description_table = self.description_table.sample(frac=percentage)

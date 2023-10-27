@@ -106,19 +106,15 @@ class TIMITDataset(AudioDataset):
                                   dialect: Optional[List[str]]) -> pd.DataFrame:
         self.description_table = self.description_table.loc[self.description_table['usage'] == usage]
 
-
-        if percentage is not None:
-            self.description_table = self.description_table.sample(frac=percentage)
-
-        if phone_classes is not None:
-            self.description_table = self.description_table.loc[self.description_table['phone_class'].isin(phone_classes)]
-
         if gender is not None:
             self.description_table = self.description_table.loc[self.description_table['gender'] == gender]
 
         if dialect is not None:
             dialects = self.description_table['dialect'].isin(dialect)
             self.description_table = self.description_table[dialects]
+
+        if phone_classes is not None:
+            self.description_table = self.description_table.loc[self.description_table['phone_class'].isin(phone_classes)]
 
         return self.description_table
 

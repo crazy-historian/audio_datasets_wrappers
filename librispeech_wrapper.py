@@ -43,7 +43,7 @@ class LibriSpeechDataset(AudioDataset):
         self.phoneme_labeler = phoneme_labeler
 
         self.description_table = self._prepare_description()
-        self.description_table = self._filter_description_table(data_kind, quality, percentage)
+        self.description_table = self._filter_description_table(data_kind, quality, phone_codes, percentage)
         self.audio_fragments = self._get_audio_fragments()
 
     def _prepare_description(self):
@@ -96,12 +96,15 @@ class LibriSpeechDataset(AudioDataset):
 
             return df
     
-    def _filter_description_table(self, data_kind, quality, percentage):
+    def _filter_description_table(self, data_kind, quality,phone_classes, percentage):
         if data_kind is not None:
             self.description_table = self.description_table.loc[self.description_table.data_kind == data_kind]
 
         if quality is not None:
             self.description_table = self.description_table.loc[self.description_table.quality == quality]
+
+        if phone_classes is not None:
+            self.description_table = self.description_table.loc[self.description_table['phone_class'].isin(phone_classes)]
 
         if percentage is not None:
             self.description_table = self.description_table.sample(frac=percentage)
