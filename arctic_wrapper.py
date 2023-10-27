@@ -2,7 +2,7 @@ import pandas as pd
 import textgrid
 
 from pathlib import Path
-from dataset import AudioDataset, AudioData, AudioFragment, PhonemeLabeler
+from dataset import AudioDataset, AudioData, PhonemeLabeler
 from typing import (
     Union,
     Optional,
@@ -15,18 +15,20 @@ class ArcticDataset(AudioDataset):
 
     def __init__(self,
                  root_dir: str,
+                 os_slash: str = '\\',
                  description_file_path: Optional[str] = None,
                  test_fraction: float = 0.2,
-                 data_percentage: float = 0.5,
+                 percentage: float = 0.5,
                  usage='train',
-                 padding: int = 0,
+                 padding_length: int = 0,
                  transform: Callable = None,
                  phone_codes: Union[List[str], str] = None,
                  gender: Optional[str] = None,
                  first_language: Optional[List[str]] = None,
                  phoneme_labeler=PhonemeLabeler()):
-        self.padding = padding
+        self.padding_length = padding_length
         self.root_dir = root_dir
+        self.os_slash = os_slash
         self.description_file_path = description_file_path
 
         self.transform = transform
@@ -60,10 +62,10 @@ class ArcticDataset(AudioDataset):
             'TLV': ['Vietnamese', 'M']
         }
         self.description_table = self._prepare_description(test_fraction)
-        self.description_table = self._filter_description_table(data_percentage, test_fraction, usage, gender, first_language)
+        self.description_table = self._filter_description_table(percentage, usage, gender, first_language)
         self.audio_fragments = self._get_audio_fragments()
 
-    def _prepare_description(self, test_fraction: float) -> pd.DataFrame:
+    def _prepare_description(self, test_fraction) -> pd.DataFrame:
         if self.description_file_path is not None and Path(self.description_file_path).is_file():
             return pd.read_csv(self.description_file_path)
         else:
@@ -79,27 +81,35 @@ class ArcticDataset(AudioDataset):
                             speaker_dir.stem,
                             self.speaker_description[speaker_dir.stem][0],
                             self.speaker_description[speaker_dir.stem][1],
-                            str(textgrid_file),
-                            str(wav_file),
+                            '/'.join(map(str, str(textgrid_file).split('\\')[-3:])),
+                            '/'.join(map(str, str(wav_file).split('\\')[-3:])),
                             interval.mark,
+                            self.phoneme_labeler[interval.mark],
                             interval.minTime,
                             interval.maxTime
                         ])
                     table.extend(table_rows)
-                # break
 
             df = pd.DataFrame(data=table, columns=[
-                'nickname', 'l1', 'gender', 'labels_file_path',
-                'wav_file_path', 'phone_name', 't0', 't1'])
-            df['usage'] = None
+                'dir_id',
+                'l1',
+                'gender',
+                'labels_file_path',
+                'audio_file_path',
+                'phone_name',
+                'phone_class',
+                't0',
+                't1']
+                )
+            df['usage'] = 'train'
+            df.loc[df.sample(frac=test_fraction).index.to_list(), 'usage'] = 'test'
             df.to_csv('arctic_description.csv', index=False)
 
             return df
 
-    def _filter_description_table(self, data_percentage: float, test_fraction:float, usage: str, gender: Optional[str], first_language: Optional[str]) -> pd.DataFrame:
-        self.description_table.loc[self.description_table.sample(frac=test_fraction).index.to_list(), 'usage'] = 'test'
+    def _filter_description_table(self, percentage: float, usage: str, gender: Optional[str], first_language: Optional[str]) -> pd.DataFrame:
+        
         self.description_table = self.description_table.loc[self.description_table['usage'] == usage]
-        self.description_table = self.description_table.sample(frac=data_percentage)
 
         if gender is not None:
             self.description_table = self.description_table.loc[self.description_table['gender'] == gender]
@@ -108,13 +118,15 @@ class ArcticDataset(AudioDataset):
             dialects = self.description_table['l1'].isin(first_language)
             self.description_table = self.description_table[dialects]
 
+        if percentage is not None:
+            self.description_table = self.description_table.sample(frac=percentage)
+
         return self.description_table
     
     def _get_audio_fragments(self, *args, **kwargs) -> list[AudioData]:
         fragments = list()
         for _, row in self.description_table.iterrows():
-            fragments.append(self._load_audio_fragment(row))
-            break
+            fragments.append(self._load_audio_fragment(row, self.root_dir))
         return fragments
 
     def __len__(self) -> int:

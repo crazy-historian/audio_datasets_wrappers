@@ -15,30 +15,30 @@ class LibriSpeechDataset(AudioDataset):
     """  """
 
     def __init__(self,
-                 data_dir: str,
+                 root_dir: str,
+                 os_slash: str = '\\',
                  description_file_path: Optional[str] = None,
-                 data_type: str = 'dev-clean',
-                 usage: str = 'train',
-                 padding: int = 0,
-                 data_percentage: Optional[float] = None,
+                 data_kind: Optional[str] = 'dev',
+                 quality: Optional[str] = 'clean',
+                 padding_length: int = 0,
+                 percentage: Optional[float] = None,
                  transform: Optional[Callable] = None,
                  phone_codes: Union[List[str], str] = None,
-                 gender: Optional[str] = None,
-                 dialect: Optional[List[str]] = None,
                  phoneme_labeler: PhonemeLabeler = PhonemeLabeler()
                  ):
         super().__init__()
-        self.padding = padding
-        self.data_dir = data_dir
+        self.padding_length = padding_length
+        self.root_dir = root_dir
+        self.os_slash = os_slash
         self.description_file_path = description_file_path
-        self.data_percentage = data_percentage
+        self.percentage = percentage
         self.phone_codes = phone_codes
         self.transform = transform
         self.phoneme_labeler = phoneme_labeler
 
         self.description_table = self._prepare_description()
-        # self.description_table = self._filter_description_table()
-        # self.audio_fragments = self._get_audio_fragments()
+        self.description_table = self._filter_description_table(data_kind, quality, percentage)
+        self.audio_fragments = self._get_audio_fragments()
 
     def _prepare_description(self):
         if self.description_file_path is not None and Path(self.description_file_path).is_file():
@@ -46,7 +46,7 @@ class LibriSpeechDataset(AudioDataset):
         else:
             table = list()
 
-            for directory in Path(self.data_dir).iterdir():
+            for directory in Path(self.root_dir).iterdir():
                 data_type, usage = str(directory.stem).split('-')
                 print(data_type, usage)
                 for sub_directory in directory.iterdir():
@@ -65,6 +65,7 @@ class LibriSpeechDataset(AudioDataset):
                                 '/'.join(map(str, str(textgrid_file).split('\\')[-4:])),
                                '/'.join(map(str, str(flac_file).split('\\')[-4:])),
                                 interval.mark,
+                                self.phoneme_labeler[interval.mark],
                                 interval.minTime,
                                 interval.maxTime
                             ])
@@ -78,8 +79,9 @@ class LibriSpeechDataset(AudioDataset):
                     # speaker sex (?)
                     # speech task id (?)
                     'textgrid_file_path',
-                    'flac_file_path',
+                    'audio_file_path',
                     'phone_name',
+                    'phone_class',
                     't0',
                     't1'
                 ]
@@ -88,15 +90,22 @@ class LibriSpeechDataset(AudioDataset):
 
             return df
     
-    def _filter_description_table(self, data_type, usage):
-        self.description_table = self.description_table.loc[self.description_table.usage == 'usage']
-        self.description_table = self.description_table.loc[self.description_table.data_type == 'data_type']
-        self.description_table = self.description_table.sample(frac=self.data_percentage)
+    def _filter_description_table(self, data_kind, quality, percentage):
+        if data_kind is not None:
+            self.description_table = self.description_table.loc[self.description_table.data_kind == data_kind]
+
+        if quality is not None:
+            self.description_table = self.description_table.loc[self.description_table.quality == quality]
+
+        if percentage is not None:
+            self.description_table = self.description_table.sample(frac=percentage)
+
+        return self.description_table
             
     def _get_audio_fragments(self, *args, **kwargs) -> list[AudioData]:
         fragments = list()
         for _, row in self.description_table.iterrows():
-            fragments.append(self._load_audio_fragment(row))
+            fragments.append(self._load_audio_fragment(row, self.root_dir))
             break
         return fragments
 
