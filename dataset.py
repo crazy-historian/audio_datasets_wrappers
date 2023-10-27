@@ -12,14 +12,6 @@ from dataclasses import dataclass, astuple
 from typing import Optional, Union, List, Callable
 
 
-@dataclass(frozen=True)
-class AudioFragment:
-    source_file: str
-    label: str
-    t1: float
-    t2: float
-
-
 @dataclass
 class AudioData:
     data: Union[bytes, np.ndarray, torch.Tensor]
@@ -60,19 +52,20 @@ class AudioDataset(Dataset, ABC):
     def _get_audio_fragments(self, *args, **kwargs) -> list[AudioData]:
         ...
 
-    def _load_audio_fragment(self, audio_fragment: pd.Series) -> AudioData:
-        metadata = torchaudio.info(audio_fragment.wav_file_path)
+    def _load_audio_fragment(self, audio_fragment: pd.Series, root_dir: str) -> AudioData:
+        metadata = torchaudio.info(Path(root_dir, audio_fragment.audio_file_path))
         frame_rate = int(metadata.sample_rate)
         sample_width = metadata.bits_per_sample
         t0 = round(audio_fragment.t0 * frame_rate)
         t1 = round(audio_fragment.t1 * frame_rate)
 
-        data, _ = torchaudio.load(audio_fragment.wav_file_path)
+        data, _ = torchaudio.load(Path(root_dir, audio_fragment.audio_file_path))
         data = data[:, t0:t1]
 
-        if self.padding != 0:
-            new_shape = self.padding - data.shape[1]
+        if self.padding_length != 0:
+            new_shape = self.padding_length - data.shape[1]
             data = F.pad(data, (0, new_shape), 'constant', 0.0)
+
         
         return AudioData(
             data=data,
