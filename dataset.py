@@ -76,6 +76,7 @@ class AudioDataset(Dataset, ABC):
                     frame_rate=frame_rate,
                     sample_width=sample_width 
                 ))
+                i += self.frame_length // 2
             else:
                 new_shape = self.frame_length - data[:, i:].shape[1]
                 frames.append(AudioData(
