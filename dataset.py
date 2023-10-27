@@ -62,14 +62,37 @@ class AudioDataset(Dataset, ABC):
         data, _ = torchaudio.load(Path(root_dir, audio_fragment.audio_file_path))
         data = data[:, t0:t1]
 
-        if self.padding_length != 0:
-            new_shape = self.padding_length - data.shape[1]
-            data = F.pad(data, (0, new_shape), 'constant', 0.0)
+        # if self.padding_length != 0:
+        #     new_shape = self.padding_length - data.shape[1]
+        #     data = F.pad(data, (0, new_shape), 'constant', 0.0)
 
-        
-        return AudioData(
-            data=data,
-            label=audio_fragment.phone_name,
-            frame_rate=frame_rate,
-            sample_width=sample_width
-        )
+        if self.by_frame is True:
+            i = 0
+            frames = list()
+            for _ in range(data.shape[1] // (self.frame_length // 2) - 1):
+                frames.append(AudioData(
+                    data=data[:, i: i + self.frame_length],
+                    label=audio_fragment.phone_name,
+                    frame_rate=frame_rate,
+                    sample_width=sample_width 
+                ))
+            else:
+                new_shape = self.frame_length - data[:, i:].shape[1]
+                frames.append(AudioData(
+                    data=F.pad(data[:, i:], (0, new_shape), 'constant', 0.0),
+                    label=audio_fragment.phone_name,
+                    frame_rate=frame_rate,
+                    sample_width=sample_width 
+                ))
+            return frames
+        else:
+            if self.padding_length != 0:
+                new_shape = self.padding_length - data.shape[1]
+                data = F.pad(data, (0, new_shape), 'constant', 0.0)
+
+            return [AudioData(
+                data=data,
+                label=audio_fragment.phone_name,
+                frame_rate=frame_rate,
+                sample_width=sample_width
+            )]
