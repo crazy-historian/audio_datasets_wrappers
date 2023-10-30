@@ -1,5 +1,6 @@
 import pandas as pd
 import textgrid
+import tqdm
 
 from pathlib import Path
 from audio_datasets_wrappers.dataset import AudioDataset, AudioData, PhonemeLabeler
@@ -32,6 +33,11 @@ class ArcticDataset(AudioDataset):
         self.root_dir = root_dir
         self.os_slash = os_slash
         self.description_file_path = description_file_path
+
+        self.usage = usage
+        self.gender = gender
+        self.first_language = first_language
+        self.percentage = percentage
 
         self.by_frame = by_frame
         self.frame_length = frame_length
@@ -68,7 +74,7 @@ class ArcticDataset(AudioDataset):
         }
         self.description_table = self._prepare_description(test_fraction)
         self.description_table = self._filter_description_table(percentage, phone_codes, usage, gender, first_language)
-        self.audio_fragments = self._get_audio_fragments()
+        self.audio_fragments = list()
 
     def _prepare_description(self, test_fraction) -> pd.DataFrame:
         if self.description_file_path is not None and Path(self.description_file_path).is_file():
@@ -133,9 +139,31 @@ class ArcticDataset(AudioDataset):
     
     def _get_audio_fragments(self, *args, **kwargs) -> list[AudioData]:
         fragments = list()
-        for _, row in self.description_table.iterrows():
+        for _, row in tqdm.tqdm(self.description_table.iterrows(), total=self.description_table.shape[0]):
             fragments.extend(self._load_audio_fragment(row, self.root_dir))
         return fragments
+    
+    def cut_and_load_phonemes(self):
+        self.audio_fragments = self._get_audio_fragments()
+        print(f'Number of fragments with phonemes: {len(self.audio_fragments)}')
+    
+    def info(self, pie_radius: float = 1.5):
+        print(
+            'ACRTIC DATASET DESCRIPTION\n'
+
+            f'Usage: {self.usage}.\n'
+            f'Specific gender: {self.gender}.\n'
+            f'Specific L1: {self.first_language}.\n'
+            f'Percentage: {self.percentage * 100}% of all data.\n'
+            f'Number of phonemes: {self.description_table.shape[0]}.\n'
+            f'By frame: {self.by_frame}.\n'
+            f'Frame_length: {self.frame_length}'
+        )
+                
+        self.description_table['phone_class'].value_counts(normalize=True).plot.pie(
+            radius=pie_radius,
+            autopct='%1.1f%%'
+        )
 
     def __len__(self) -> int:
         return len(self.audio_fragments)

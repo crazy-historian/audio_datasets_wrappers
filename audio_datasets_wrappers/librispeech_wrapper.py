@@ -1,3 +1,4 @@
+import tqdm
 import textgrid
 import pandas as pd
 
@@ -35,6 +36,9 @@ class LibriSpeechDataset(AudioDataset):
         self.by_frame = by_frame
         self.frame_length = frame_length
 
+        self.data_kind = data_kind
+        self.quality = quality
+
         self.os_slash = os_slash
         self.description_file_path = description_file_path
         self.percentage = percentage
@@ -44,7 +48,7 @@ class LibriSpeechDataset(AudioDataset):
 
         self.description_table = self._prepare_description()
         self.description_table = self._filter_description_table(data_kind, quality, phone_codes, percentage)
-        self.audio_fragments = self._get_audio_fragments()
+        self.audio_fragments = list()
 
     def _prepare_description(self):
         if self.description_file_path is not None and Path(self.description_file_path).is_file():
@@ -113,12 +117,33 @@ class LibriSpeechDataset(AudioDataset):
             
     def _get_audio_fragments(self, *args, **kwargs) -> list[AudioData]:
         fragments = list()
-        for _, row in self.description_table.iterrows():
+        for _, row in tqdm.tqdm(self.description_table.iterrows(), total=self.description_table.shape[0]):
             fragments.extend(self._load_audio_fragment(row, self.root_dir))
         return fragments
 
+    def info(self, pie_radius: float = 1.5):
+        print(
+            'LIBRISPEECH DATASET DESCRIPTION\n'
+
+            f'Specific data kind: {self.data_kind}.\n'
+            f'Specific quality: {self.quality}.\n'
+            f'Percentage: {self.percentage * 100}% of all data.\n'
+            f'Number of phonemes: {self.description_table.shape[0]}.\n'
+            f'By frame: {self.by_frame}.\n'
+            f'Frame_length: {self.frame_length}'
+        )
+                
+        self.description_table['phone_class'].value_counts(normalize=True).plot.pie(
+            radius=pie_radius,
+            autopct='%1.1f%%'
+        )
+
     def __len__(self) -> int:
         return len(self.audio_fragments)
+    
+    def cut_and_load_phonemes(self):
+        self.audio_fragments = self._get_audio_fragments()
+        print(f'Number of fragments with phonemes: {len(self.audio_fragments)}')
 
     def __getitem__(self, item: int) -> AudioData:
         if self.transform:
