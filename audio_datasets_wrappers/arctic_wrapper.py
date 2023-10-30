@@ -2,7 +2,7 @@ import pandas as pd
 import textgrid
 
 from pathlib import Path
-from dataset import AudioDataset, AudioData, PhonemeLabeler
+from audio_datasets_wrappers.dataset import AudioDataset, AudioData, PhonemeLabeler
 from typing import (
     Union,
     Optional,
