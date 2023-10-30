@@ -116,6 +116,9 @@ class TIMITDataset(AudioDataset):
         if phone_classes is not None:
             self.description_table = self.description_table.loc[self.description_table['phone_class'].isin(phone_classes)]
 
+        if percentage is not None:
+            self.description_table = self.description_table.sample(frac=percentage)
+
         return self.description_table
 
     def _get_audio_fragments(self, *args, **kwargs) -> list[AudioData]:
