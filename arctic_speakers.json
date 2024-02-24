@@ -1,0 +1,74 @@
+{
+    "ABA": {
+        "country": "Arabic",
+        "gender": "F"
+    },
+    "SKA":  {
+        "country": "Arabic",
+        "gender": "F"
+    },
+    "YBAA": {
+        "country": "Arabic",
+        "gender": "M"
+    },
+    "ZHAA": {
+        "country": "Arabic",
+        "gender": "F"
+    },
+    "BWC": {
+        "country": "Mandarin",
+        "gender": "M"
+    },
+    "LXC": {
+        "country": "Mandarin",
+        "gender": "F"
+    },
+    "NCC": {
+        "country": "Mandarin",
+        "gender": "F"
+    },
+    "TXHC": {
+        "country": "Mandarin",
+        "gender": "M"
+    },
+    "ASI": {
+        "country": "Hindi",
+        "gender": "M"
+    },
+    "RRBI": {
+        "country": "Hindi",
+        "gender": "M"
+    },
+    "SVBI": {
+        "country": "Hindi",
+        "gender": "F"
+    },
+    "TNI": {
+        "country": "Hindi",
+        "gender": "F"
+    },
+    "HJK": {
+        "country": "Korean",
+        "gender": "F"
+    },
+    "HKK": {
+        "country": "Korean",
+        "gender": "M"
+    },
+    "YDCK": {
+        "country": "Korean",
+        "gender": "F"
+    },
+    "YKWK": {
+        "country": "Korean",
+        "gender": "M"
+    },
+    "EBVS": {
+        "country": "Spanish",
+        "gender": "M"
+    },
+    "ERMS": {
+        "country": "Spanish",
+        "gender": "M"
+    }
+}
