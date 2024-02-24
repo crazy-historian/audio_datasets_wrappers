@@ -1,6 +1,6 @@
 /venv
 /__pycache__
-audio_datasets_wrappers/__pycache__/
+audio_datasets_wrappers/__pycache__
 sandbox.ipynb
 arctic_description.csv
 libri_speech_description.csv
