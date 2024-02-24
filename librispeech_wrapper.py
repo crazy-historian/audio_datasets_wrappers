@@ -2,7 +2,7 @@ import textgrid
 import pandas as pd
 
 from pathlib import Path
-from dataset import AudioDataset, AudioData, PhonemeLabeler
+from dataset import PhonemeDataset, PhonemeData, PhonemeLabeler
 from typing import (
     Union,
     Optional,
@@ -11,7 +11,7 @@ from typing import (
 )
 
 
-class LibriSpeechDataset(AudioDataset):
+class LibriSpeechDataset(PhonemeDataset):
     """  """
 
     def __init__(self,
@@ -111,7 +111,7 @@ class LibriSpeechDataset(AudioDataset):
 
         return self.description_table
             
-    def _get_audio_fragments(self, *args, **kwargs) -> list[AudioData]:
+    def _get_audio_fragments(self, *args, **kwargs) -> list[PhonemeData]:
         fragments = list()
         for _, row in self.description_table.iterrows():
             fragments.extend(self._load_audio_fragment(row, self.root_dir))
@@ -120,7 +120,7 @@ class LibriSpeechDataset(AudioDataset):
     def __len__(self) -> int:
         return len(self.audio_fragments)
 
-    def __getitem__(self, item: int) -> AudioData:
+    def __getitem__(self, item: int) -> PhonemeData:
         if self.transform:
             audio_data = self.audio_fragments[item]
             audio_data.data = self.transform(audio_data.data)

@@ -4,7 +4,7 @@ from setuptools import setup
 setup(
     name='audio_datasets_wrappers',
     description='custom wrappers for audio datasets',
-    version='0.0.1',
+    version='0.1.0',
     license='',
     url='https://github.com/crazy-historian/audio_datasets_wrappers',
     author='Maxim Zaitsev',
@@ -16,6 +16,10 @@ setup(
         'pandas',
         'torch',
         'torchaudio',
-        'textgrid'
+        'textgrid',
+        'soundfile',
+        'tqdm',
+        'pytorch_lightning',
+        'scikit-learn',
     ]
 )

@@ -4,4 +4,6 @@ torch
 torchaudio
 textgrid
 soundfile
-tqfm
+tqdm
+pytorch_lightning
+scikit-learn
