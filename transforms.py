@@ -32,18 +32,6 @@ def remove_digits(phoneme_name: str) -> str:
     return re.sub(r'[0-9]+', '', phoneme_name)
 
 def create_timit_discription_table(dir_path: str, phoneme_labeler: PhonemeLabeler) -> pd.DataFrame:
-    columns = [
-        'phone_name',
-        'phone_class',
-        'usage',
-        'speaker_id',
-        'gender',
-        'dialect',
-        'allignment_file_path',
-        'audio_file_path',
-        't0',
-        't1'
-    ]
     data = list()
 
     slash = '\\' if platform.system() == 'Windows' else '/'
@@ -76,7 +64,6 @@ def create_timit_discription_table(dir_path: str, phoneme_labeler: PhonemeLabele
     return pd.DataFrame(data=data, columns=COLUMNS)
 
 def create_arctic_discription_table(dir_path: str, phoneme_labeler: PhonemeLabeler) -> pd.DataFrame:
-
     data = list()
 
     slash = '\\' if platform.system() == 'Windows' else '/'
@@ -107,18 +94,6 @@ def create_arctic_discription_table(dir_path: str, phoneme_labeler: PhonemeLabel
         return pd.DataFrame(data=data, columns=COLUMNS)
     
 def create_librispeech_description_table(dir_path: str, phoneme_labeler: PhonemeLabeler) -> pd.DataFrame:
-    columns = [
-        'phone_name',
-        'phone_class',
-        'usage',
-        'speaker_id',
-        'gender',
-        'dialect',
-        'allignment_file_path',
-        'audio_file_path',
-        't0',
-        't1'
-    ]
     data = list()
 
     slash = '\\' if platform.system() == 'Windows' else '/'
